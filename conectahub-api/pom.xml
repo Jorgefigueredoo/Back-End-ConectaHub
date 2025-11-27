@@ -85,10 +85,12 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 
-            >>> A DEPENDÊNCIA QUE FALTAVA <<<
-            Isso vai baixar o JUnit e o SpringBootTest
-        -->
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>4.4.0</version> 
+        </dependency>
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -107,7 +109,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <!-- A versão do Lombok é gerenciada pelo spring-boot-starter-parent -->
+                            
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

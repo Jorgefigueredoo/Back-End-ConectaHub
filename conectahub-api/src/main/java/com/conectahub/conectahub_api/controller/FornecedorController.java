@@ -1,6 +1,5 @@
 package com.conectahub.conectahub_api.controller;
 
-// Imports corrigidos para o seu pacote
 import com.conectahub.conectahub_api.model.Fornecedor;
 import com.conectahub.conectahub_api.service.FornecedorService;
 
@@ -12,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/fornecedores") // Endereço base: http://localhost:8080/api/fornecedores
-@CrossOrigin(origins = "*") // Permite que o Front-end chame esta API
+@CrossOrigin(origins = "*")
 public class FornecedorController {
 
     // O Controller injeta o Service
@@ -34,7 +33,8 @@ public class FornecedorController {
      * Endpoint para CRIAR um novo fornecedor
      * Método: POST
      * URL: http://localhost:8080/api/fornecedores
-     * Body (Corpo da requisição): {"razaoSocial": "Sementes S.A.", "cnpj": "12.345.678/0001-99"}
+     * Body (Corpo da requisição): {"razaoSocial": "Sementes S.A.", "cnpj":
+     * "12.345.678/0001-99"}
      */
     @PostMapping
     public Fornecedor criarFornecedor(@RequestBody Fornecedor fornecedor) {
@@ -45,10 +45,12 @@ public class FornecedorController {
      * Endpoint para ATUALIZAR um fornecedor
      * Método: PUT
      * URL: http://localhost:8080/api/fornecedores/1 (onde 1 é o ID)
-     * Body (Corpo da requisição): {"razaoSocial": "Novo Nome S.A.", "cnpj": "11.111..."}
+     * Body (Corpo da requisição): {"razaoSocial": "Novo Nome S.A.", "cnpj":
+     * "11.111..."}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Fornecedor> atualizarFornecedor(@PathVariable Long id, @RequestBody Fornecedor fornecedorDetails) {
+    public ResponseEntity<Fornecedor> atualizarFornecedor(@PathVariable Long id,
+            @RequestBody Fornecedor fornecedorDetails) {
         Fornecedor atualizado = fornecedorService.atualizar(id, fornecedorDetails);
         return ResponseEntity.ok(atualizado); // Retorna "200 OK" com o objeto atualizado
     }
@@ -63,4 +65,4 @@ public class FornecedorController {
         fornecedorService.deletar(id);
         return ResponseEntity.noContent().build(); // Retorna "204 No Content" (sucesso sem corpo)
     }
-}
+}   
