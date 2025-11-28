@@ -27,52 +27,43 @@ public class Usuario implements UserDetails {
     private String email;
 
     @Column(name = "senha_hash", nullable = false)
-    private String senha;
+    private String senhaHash;
 
-    public Usuario(String nome, String email, String senha) {
+    // 1. NOVO CAMPO: Para salvar a permissão no banco
+    private String role;
+
+    // 2. CONSTRUTOR ATUALIZADO (Recebe os 4 dados na ordem que o Service manda)
+    public Usuario(String nome, String email, String senhaHash, String role) {
         this.nome = nome;
         this.email = email;
-        this.senha = senha;
+        this.senhaHash = senhaHash;
+        this.role = role;
     }
+
+    // ==========================
+    // SPRING SECURITY
+    // ==========================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // 3. Agora ele lê o role do banco.
+        // Se no banco estiver "ADMIN", o Spring entende ROLE_ADMIN.
+        if (this.role == null) return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.toUpperCase()));
     }
 
     @Override
     public String getPassword() {
-        // Retorna a senha (que o Spring Security vai comparar)
-        return this.senha;
+        return this.senhaHash;
     }
 
     @Override
     public String getUsername() {
-        // Retorna o 'username' (que no nosso caso é o email)
         return this.email;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        // A conta nunca expira
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        // A conta nunca é bloqueada
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        // As credenciais nunca expiram
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        // A conta está sempre habilitada
-        return true;
-    }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }

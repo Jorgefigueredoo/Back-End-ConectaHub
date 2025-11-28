@@ -1,40 +1,49 @@
 package com.conectahub.conectahub_api.service;
 
-import com.conectahub.conectahub_api.dto.LoginRequestDTO;
-import com.conectahub.conectahub_api.dto.LoginResponseDTO;
+import com.conectahub.conectahub_api.dto.RegisterRequestDTO;
 import com.conectahub.conectahub_api.model.Usuario;
+import com.conectahub.conectahub_api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AutenticacaoService {
+public class AutenticacaoService implements UserDetailsService {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private UsuarioRepository repository;
 
-    @Autowired
-    private TokenService tokenService; // Vamos precisar criar este serviço
+    // ✅ MÉTODO 1: Ensina o Spring a buscar usuário (Sem loop!)
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return repository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+    }
 
-    public LoginResponseDTO efetuarLogin(LoginRequestDTO loginRequest) {
-        // 1. Cria um token de autenticação com o email/senha do DTO
-        var usernamePassword = new UsernamePasswordAuthenticationToken(
-                loginRequest.email(),
-                loginRequest.senha()
+    // ✅ MÉTODO 2: Apenas cadastra (Não faz login aqui!)
+   public void registrar(RegisterRequestDTO data) {
+        if (this.repository.findByEmail(data.login()).isPresent()) {
+            throw new RuntimeException("Este email já está em uso!");
+        }
+
+        String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
+        
+        // --- CORREÇÃO AQUI ---
+        // A ordem aqui TEM que bater com o construtor da classe Usuario.java
+        // Geralmente é: (Nome, Email, Senha, Role)
+        Usuario newUser = new Usuario(
+            data.name(),        // 1. Nome (Verifique se seu DTO tem .name())
+            data.login(),       // 2. Email
+            encryptedPassword,  // 3. Senha Criptografada
+            data.role()         // 4. Role (permissão)
         );
 
-        // 2. O Spring Security tenta autenticar. Se falhar, ele lança uma exceção.
-        Authentication auth = authenticationManager.authenticate(usernamePassword);
-
-        // 3. Se deu certo, pega o 'Usuario' logado
-        Usuario usuarioLogado = (Usuario) auth.getPrincipal();
-
-        // 4. Gera um Token JWT para este usuário
-        String token = tokenService.gerarToken(usuarioLogado);
-
-        // 5. Retorna o token para o frontend
-        return new LoginResponseDTO(token);
+        this.repository.save(newUser);
     }
+    
+    // ❌ IMPORTANTE: O método 'efetuarLogin' e o 'AuthenticationManager' FORAM REMOVIDOS DAQUI.
+    // A lógica de login agora vive exclusivamente no Controller.
 }
