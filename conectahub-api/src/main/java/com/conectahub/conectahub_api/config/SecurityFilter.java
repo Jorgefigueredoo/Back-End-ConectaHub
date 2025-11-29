@@ -24,53 +24,52 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+@Override
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain filterChain) throws ServletException, IOException {
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    String path = request.getRequestURI();
 
-        String path = request.getRequestURI();
-
-        // ✅ IGNORA ROTAS DE LOGIN E CADASTRO
-        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = recoverToken(request);
-
-        // ✅ NÃO bloqueia se não tiver token (deixa o Spring cuidar)
-        if (token != null) {
-            try {
-                String login = tokenService.validarToken(token);
-
-                if (login != null && !login.isEmpty()) {
-                    Optional<Usuario> usuario = usuarioRepository.findByEmail(login);
-
-                    if (usuario.isPresent()) {
-                        Usuario userEntity = usuario.get();
-
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        userEntity,
-                                        null,
-                                        userEntity.getAuthorities()
-                                );
-
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    }
-                }
-            } catch (Exception e) {
-                // ✅ Token inválido não quebra a aplicação
-                System.out.println("Token inválido ou expirado: " + e.getMessage());
-            }
-        }
-
+    // ✅ IGNORA ROTAS DE LOGIN E CADASTRO
+    if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
         filterChain.doFilter(request, response);
+        return;
     }
 
+    // Restante do código permanece igual...
+    String token = recoverToken(request);
+
+    if (token != null) {
+        try {
+            String login = tokenService.validarToken(token);
+
+            if (login != null && !login.isEmpty()) {
+                Optional<Usuario> usuario = usuarioRepository.findByEmail(login);
+
+                if (usuario.isPresent()) {
+                    Usuario userEntity = usuario.get();
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userEntity,
+                                    null,
+                                    userEntity.getAuthorities()
+                            );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Token inválido ou expirado: " + e.getMessage());
+        }
+    }
+
+    filterChain.doFilter(request, response);
+}
+
     private String recoverToken(HttpServletRequest request) {
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
