@@ -2,13 +2,20 @@ package com.conectahub.conectahub_api.service;
 
 import com.conectahub.conectahub_api.dto.CriarEnvioRequestDTO;
 import com.conectahub.conectahub_api.dto.DetalhesEnvioDTO;
-import com.conectahub.conectahub_api.model.*;
+import com.conectahub.conectahub_api.model.Agricultor;
+import com.conectahub.conectahub_api.model.Envio;
+import com.conectahub.conectahub_api.model.HistoricoEnvio;
+import com.conectahub.conectahub_api.model.Semente;
 import com.conectahub.conectahub_api.model.StatusEnvio;
-import com.conectahub.conectahub_api.repository.*;
+import com.conectahub.conectahub_api.repository.AgricultorRepository;
+import com.conectahub.conectahub_api.repository.EnvioRepository;
+import com.conectahub.conectahub_api.repository.HistoricoEnvioRepository;
+import com.conectahub.conectahub_api.repository.SementeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -16,71 +23,100 @@ public class EnvioService {
 
     @Autowired
     private EnvioRepository envioRepository;
+
     @Autowired
     private SementeRepository sementeRepository;
+
     @Autowired
     private AgricultorRepository agricultorRepository;
+
     @Autowired
     private HistoricoEnvioRepository historicoEnvioRepository;
 
     /**
-     * Esta é a lógica de negócio mais crítica.
-     * Ela CRIA o envio, BAIXA o stock e REGISTA o histórico.
-     * @Transactional garante que ou tudo funciona, ou nada é salvo no banco.
+     * Cria um novo envio (Status: CRIADO / Pedido Enviado)
      */
     @Transactional
     public Envio criarNovoEnvio(CriarEnvioRequestDTO request) {
         
-        // 1. Validar e buscar o agricultor
         Agricultor agricultor = agricultorRepository.findById(request.getAgricultorId())
             .orElseThrow(() -> new RuntimeException("Agricultor não encontrado"));
 
-        // 2. Buscar e TRAVAR a Semente no banco para esta transação
         Semente semente = sementeRepository.findWithLockingById(request.getSementeId())
             .orElseThrow(() -> new RuntimeException("Semente não encontrada"));
 
-        // 3. Verificar o stock
         if (semente.getQuantidadeKg().compareTo(request.getQuantidadeKg()) < 0) {
-            throw new RuntimeException("Stock insuficiente para " + semente.getTipoSemente());
+            throw new RuntimeException("Estoque insuficiente.");
         }
 
-        // 4. Se tiver stock, dar baixa
         semente.setQuantidadeKg(semente.getQuantidadeKg().subtract(request.getQuantidadeKg()));
-        sementeRepository.save(semente); // Salva o novo valor do stock
+        sementeRepository.save(semente);
 
-        // 5. Criar o novo envio (Lote)
         Envio novoEnvio = new Envio();
         novoEnvio.setAgricultor(agricultor);
         novoEnvio.setSemente(semente);
         novoEnvio.setQuantidadeEnviadaKg(request.getQuantidadeKg());
         novoEnvio.setStatus(StatusEnvio.CRIADO);
-        novoEnvio.setCodigoLote(request.getCodigoLote()); // Usamos o código da tela
+        novoEnvio.setCodigoLote(request.getCodigoLote());
+        novoEnvio.setDataCriacao(LocalDateTime.now());
         
         Envio envioSalvo = envioRepository.save(novoEnvio);
 
-        // 6. Criar o primeiro registo no histórico (visto na timeline)
-        HistoricoEnvio historicoInicial = new HistoricoEnvio(
-            envioSalvo, 
-            StatusEnvio.CRIADO, 
-            "Lote gerado no Armazém central"
-        );
-        historicoEnvioRepository.save(historicoInicial);
+        registrarHistorico(envioSalvo, StatusEnvio.CRIADO, "Lote gerado no Armazém central");
 
         return envioSalvo;
     }
 
-    /**
-     * Busca o envio E o seu histórico (para a tela "Detalhes do lote")
-     */
     public DetalhesEnvioDTO buscarDetalhesDoEnvio(String codigoLote) {
-        // 1. Busca o envio pelo código
         Envio envio = envioRepository.findByCodigoLote(codigoLote)
             .orElseThrow(() -> new RuntimeException("Lote não encontrado: " + codigoLote));
         
-        // 2. Busca o histórico desse envio
         List<HistoricoEnvio> historico = historicoEnvioRepository.findByEnvioIdOrderByDataHoraAsc(envio.getId());
 
-        // 3. Retorna o DTO combinado
         return new DetalhesEnvioDTO(envio, historico);
+    }
+
+    /**
+     * Atualiza para "EM ROTA DE ENTREGA" (EM_TRANSITO)
+     * ESTE É O MÉTODO QUE ESTAVA FALTANDO
+     */
+    public Envio marcarComoEmTransito(Long envioId) {
+        Envio envio = envioRepository.findById(envioId)
+            .orElseThrow(() -> new RuntimeException("Envio não encontrado"));
+
+        // Só atualiza se não estiver entregue
+        if (envio.getStatus() != StatusEnvio.ENTREGUE && envio.getStatus() != StatusEnvio.EM_TRANSITO) {
+            envio.setStatus(StatusEnvio.EM_TRANSITO);
+            envioRepository.save(envio);
+            
+            registrarHistorico(envio, StatusEnvio.EM_TRANSITO, "Saiu para entrega (Em Rota)");
+        }
+        return envio;
+    }
+
+    /**
+     * Atualiza para "ENTREGUE"
+     */
+    public Envio marcarComoEntregue(Long envioId) {
+        Envio envio = envioRepository.findById(envioId)
+            .orElseThrow(() -> new RuntimeException("Envio não encontrado"));
+
+        if (envio.getStatus() != StatusEnvio.ENTREGUE) {
+            envio.setStatus(StatusEnvio.ENTREGUE);
+            envioRepository.save(envio);
+
+            registrarHistorico(envio, StatusEnvio.ENTREGUE, "Entrega confirmada no destino.");
+        }
+        return envio;
+    }
+
+    // Método auxiliar para evitar repetição de código
+    private void registrarHistorico(Envio envio, StatusEnvio status, String descricao) {
+        HistoricoEnvio historico = new HistoricoEnvio();
+        historico.setEnvio(envio);
+        historico.setStatus(status);
+        historico.setDescricao(descricao);
+        historico.setDataHora(LocalDateTime.now());
+        historicoEnvioRepository.save(historico);
     }
 }
