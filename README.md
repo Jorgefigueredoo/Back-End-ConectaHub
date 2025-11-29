@@ -567,7 +567,13 @@ Este projeto é de uso educacional para fins acadêmicos.
 
 Projeto desenvolvido como trabalho integrador do curso de Análise e Desenvolvimento de Sistemas.
 
-
+Equipe:
+Jorge Antonio,
+Lucas Souza,
+Luiz Eduardo,
+Kauan Nicolas,
+Matheus Paulo e 
+Vínicius Trezena
 
 **Desenvolvido com ❤️ para conectar distribuidores e agricultores através da tecnologia**
 
