@@ -1,121 +1,141 @@
-# 🚀 Liferay - Sistema de Gerenciamento de Eventos
+# 🌱 ConectaHub API - Sistema de Distribuição de Sementes
 
-Sistema completo de gerenciamento de eventos desenvolvido com Spring Boot, oferecendo APIs REST para criação de eventos, autenticação de usuários, gerenciamento de perfis e inscrições.
+API REST completa desenvolvida com Spring Boot para gerenciar a distribuição de sementes agrícolas, conectando fornecedores, agricultores e operadores em uma plataforma centralizada.
 
-## 📋 Índice
+## 📋 Sobre o Projeto
 
-- [Tecnologias](#-tecnologias)
-- [Funcionalidades](#-funcionalidades)
-- [Configuração](#-configuração)
-- [Endpoints da API](#-endpoints-da-api)
-- [Segurança](#-segurança)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Deploy](#-deploy)
+O ConectaHub API é o backend de uma solução para gerenciar a distribuição de sementes agrícolas. O sistema controla estoques, envios, rastreamento de lotes e fornece relatórios gerenciais completos.
 
-## 🛠️ Tecnologias
+## 🛠️ Tecnologias Utilizadas
 
 - **Java 17**
-- **Spring Boot 3.3.5**
+- **Spring Boot 3.3.1**
 - **Spring Security** - Autenticação JWT
 - **Spring Data JPA** - Persistência de dados
-- **PostgreSQL** - Banco de dados em produção
-- **JWT (JSON Web Token)** - Autenticação stateless
+- **MySQL** - Banco de dados
+- **JWT (JSON Web Token)** - Autenticação stateless com Auth0
 - **Maven** - Gerenciamento de dependências
 - **Hibernate** - ORM
+- **OpenPDF** - Geração de relatórios em PDF
+- **Lombok** - Redução de código boilerplate
 
 ## ✨ Funcionalidades
 
-### 🔐 Autenticação e Usuários
-- ✅ Login com JWT (usuário/email + senha)
+### 🔐 Autenticação e Autorização
+- ✅ Login com JWT (email + senha)
 - ✅ Registro de novos usuários
-- ✅ Tokens com expiração de 5 horas
+- ✅ Tokens com expiração de 2 horas
 - ✅ Senhas criptografadas com BCrypt
-- ✅ Criação automática de perfil ao registrar
+- ✅ Controle de perfis (ADMIN, USER)
 
-### 👤 Perfis de Usuário
-- ✅ Visualizar perfil próprio
-- ✅ Atualizar informações do perfil
-- ✅ Upload de foto de perfil
-- ✅ Gerenciamento de habilidades
-- ✅ Visualizar perfis públicos de outros usuários
-- ✅ Busca global por nome, título e habilidades
+### 👨‍🌾 Gestão de Agricultores
+- ✅ Busca de agricultores por nome
+- ✅ Cadastro com CPF/CNPJ
+- ✅ Registro de município e UF
 
-### 🎉 Eventos
-- ✅ Criação de eventos (autenticado)
-- ✅ Listagem de eventos futuros
-- ✅ Busca de evento por ID
-- ✅ Busca por nome, descrição ou categoria
-- ✅ Visualização de eventos criados pelo usuário
-- ✅ Exclusão de eventos (apenas criador)
-- ✅ Campos: nome, descrição, data, hora, local, categoria e vagas
+### 🏭 Gestão de Fornecedores
+- ✅ Cadastro completo (Razão Social, CNPJ)
+- ✅ Listagem de fornecedores
+- ✅ Atualização de dados
+- ✅ Exclusão de fornecedores
 
-### 📝 Inscrições
-- ✅ Inscrição de usuários em eventos
-- ✅ Validação de vagas disponíveis
-- ✅ Verificação de inscrições duplicadas
-- ✅ Cancelamento de inscrições
-- ✅ Listagem de minhas inscrições
-- ✅ Histórico de eventos passados
-- ✅ Atualização automática de vagas
+### 🌾 Controle de Estoque de Sementes
+- ✅ Listagem de sementes disponíveis
+- ✅ Controle de quantidade em kg
+- ✅ Nível mínimo de estoque
+- ✅ Status automático (Disponível/Estoque Baixo/Sem Estoque)
+- ✅ Bloqueio pessimista para evitar inconsistências
 
-### 📧 Contato
-- ✅ Formulário de contato corporativo
-- ✅ Envio de mensagens (público)
+### 📦 Gestão de Envios
+- ✅ Criação de novos envios
+- ✅ Geração automática de código de lote
+- ✅ Baixa automática no estoque
+- ✅ Rastreamento por código de lote
+- ✅ Atualização de status (Criado → Em Trânsito → Entregue → Confirmado)
+- ✅ Histórico completo de movimentações
 
-## 🔧 Configuração
+### 📊 Dashboard e Relatórios
+- ✅ Estatísticas em tempo real (envios em trânsito, entregues)
+- ✅ Taxa de confirmação
+- ✅ Atividades recentes
+- ✅ Geração de relatórios em PDF
+- ✅ Filtros avançados (por agricultor, semente, município, período)
+
+## 🔧 Configuração e Instalação
 
 ### Pré-requisitos
+
 - JDK 17 ou superior
-- PostgreSQL 12+ (produção) ou MySQL 8.0+ (desenvolvimento)
+- MySQL 8.0+
 - Maven 3.6+
 
-### Variáveis de Ambiente
+### Configuração do Banco de Dados
 
-Configure as seguintes variáveis de ambiente:
-
-```bash
-# Banco de Dados
-DB_URL=jdbc:postgresql://seu-host:5432/seu-banco
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
-
-# JWT (opcional - tem valor padrão)
-JWT_SECRET=sua_chave_secreta_aqui
-
-# Porta (opcional)
-PORT=8080
+1. **Crie o banco de dados:**
+```sql
+CREATE DATABASE conectahub;
+USE conectahub;
 ```
 
-### Instalação Local
-
-1. Clone o repositório:
+2. **Execute os scripts SQL** (na ordem):
 ```bash
-git clone https://github.com/seu-usuario/eventos-liferay.git
-cd eventos-liferay/eventos
+# 1. Estrutura das tabelas
+mysql -u root -p conectahub < "Estrutura SQL.sql"
+
+# 2. Dados de exemplo
+mysql -u root -p conectahub < "Inserts SQL.sql"
+
+# 3. Procedures e Functions (opcional)
+mysql -u root -p conectahub < "Procedures e Funções SQL.sql"
+
+# 4. Triggers (opcional)
+mysql -u root -p conectahub < "Triggers SQL.sql"
+
+# 5. Views (opcional)
+mysql -u root -p conectahub < "Views SQL.sql"
 ```
 
-2. Configure o banco de dados em `application.properties` (para desenvolvimento local):
+### Configuração da Aplicação
+
+1. **Clone o repositório:**
+```bash
+git clone https://github.com/seu-usuario/conectahub.git
+cd conectahub/conectahub-api
+```
+
+2. **Configure o `application.properties`:**
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/liferay
-spring.datasource.username=seu_usuario
+# Conexão com MySQL
+spring.datasource.url=jdbc:mysql://localhost:3306/conectahub?useSSL=false&serverTimezone=UTC
+spring.datasource.username=root
 spring.datasource.password=sua_senha
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JWT Secret
+jwt.secret=minha-chave-secreta-super-segura-conectahub-2024
+
+# Porta
+server.port=8080
 ```
 
-3. Compile o projeto:
+3. **Compile e execute:**
 ```bash
+# Compilar
 ./mvnw clean install
-```
 
-4. Execute a aplicação:
-```bash
+# Executar
 ./mvnw spring-boot:run
 ```
 
-A aplicação estará disponível em `http://localhost:8080`
+A API estará disponível em `http://localhost:8080`
 
 ## 📡 Endpoints da API
 
-### 🔓 Públicos (Sem autenticação)
+### 🔓 Endpoints Públicos
 
 #### Autenticação
 
@@ -125,7 +145,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "login": "teste@email.com",
+  "email": "teste@email.com",
   "senha": "123456"
 }
 ```
@@ -133,11 +153,7 @@ Content-Type: application/json
 **Resposta:**
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "tipo": "Bearer",
-  "id": 1,
-  "nomeUsuario": "testuser",
-  "email": "teste@email.com"
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
 }
 ```
 
@@ -147,285 +163,355 @@ POST /api/auth/register
 Content-Type: application/json
 
 {
-  "nomeUsuario": "novousuario",
-  "email": "novo@email.com",
-  "senha": "senha123",
-  "nomeCompleto": "Novo Usuário",
-  "titulo": "Desenvolvedor",
-  "sobreMim": "Apaixonado por tecnologia",
-  "habilidades": ["Java", "Spring Boot"]
+  "name": "Nome Usuario",
+  "login": "usuario@email.com",
+  "password": "senha123",
+  "role": "USER"
 }
 ```
 
-#### Eventos
+#### Agricultores
 
-**Listar Eventos Futuros**
+**Buscar Agricultores**
 ```http
-GET /api/eventos
+GET /api/agricultores/buscar?nome=Jose
 ```
 
-**Buscar Evento por ID**
-```http
-GET /api/eventos/{id}
-```
-
-#### Perfis
-
-**Buscar Perfis Globalmente**
-```http
-GET /api/perfis/buscar?q=java&filtro=habilidades
-```
-
-Filtros disponíveis:
-- `todos` - Busca em nome, título e habilidades (padrão)
-- `usuarios` - Busca apenas em nome e título
-- `habilidades` - Busca apenas em habilidades
-- `eventos` - Busca em eventos
-
-**Ver Perfil Público**
-```http
-GET /api/perfis/usuario/{usuarioId}
-```
-
-#### Contato
-
-**Enviar Mensagem**
-```http
-POST /api/contato/enviar
-Content-Type: application/json
-
-{
-  "nome": "João",
-  "sobrenome": "Silva",
-  "email": "joao@empresa.com",
-  "telefone": "+5581999999999",
-  "pais": "Brasil",
-  "areaTrabalho": "Tecnologia",
-  "motivo": "Interesse em parceria"
-}
-```
-
-### 🔒 Protegidos (Requer autenticação)
+### 🔒 Endpoints Protegidos (Requer Token JWT)
 
 **Header obrigatório:**
 ```http
 Authorization: Bearer {seu_token_jwt}
 ```
 
-#### Perfil do Usuário
+#### Fornecedores
 
-**Meu Perfil**
+**Listar Fornecedores**
 ```http
-GET /api/perfis/me
+GET /api/fornecedores
 ```
 
-**Atualizar Perfil**
+**Criar Fornecedor**
 ```http
-PUT /api/perfis/me
+POST /api/fornecedores
 Content-Type: application/json
 
 {
-  "nomeCompleto": "Nome Completo Atualizado",
-  "titulo": "Desenvolvedor Senior",
-  "sobreMim": "Descrição atualizada",
-  "habilidades": ["Java", "Spring", "Docker"]
+  "razaoSocial": "Sementes do Agreste Ltda",
+  "cnpj": "12.345.678/0001-99"
 }
 ```
 
-**Upload de Foto**
+**Atualizar Fornecedor**
 ```http
-POST /api/perfis/foto
-Content-Type: multipart/form-data
-
-file: [arquivo de imagem]
-```
-
-#### Eventos
-
-**Criar Evento**
-```http
-POST /api/eventos/criar
+PUT /api/fornecedores/{id}
 Content-Type: application/json
 
 {
-  "nome": "Workshop de Spring Boot",
-  "descricao": "Aprenda Spring Boot na prática",
-  "data": "2025-12-15",
-  "hora": "14:00:00",
-  "local": "Auditório Principal",
-  "categoria": "Tecnologia",
-  "vagas": 50
+  "razaoSocial": "Novo Nome Ltda",
+  "cnpj": "12.345.678/0001-99"
 }
 ```
 
-**Meus Eventos**
+**Deletar Fornecedor**
 ```http
-GET /api/eventos/meus
+DELETE /api/fornecedores/{id}
 ```
 
-**Deletar Evento**
+#### Sementes (Estoque)
+
+**Listar Estoque**
 ```http
-DELETE /api/eventos/{id}
+GET /api/sementes
 ```
 
-#### Inscrições
+#### Envios
 
-**Inscrever-se em Evento**
+**Criar Novo Envio**
 ```http
-POST /api/inscricoes/eventos/{id}/inscrever
+POST /api/envios
+Content-Type: application/json
+
+{
+  "agricultorId": 1,
+  "sementeId": 2,
+  "quantidadeKg": 50.5,
+  "codigoLote": "LOT-2024-001"
+}
 ```
 
-**Cancelar Inscrição**
+**Rastrear Envio**
 ```http
-DELETE /api/inscricoes/eventos/{id}/cancelar
+GET /api/envios/buscar/{codigoLote}
 ```
 
-**Verificar Status**
+**Atualizar para "Em Rota"**
 ```http
-GET /api/inscricoes/eventos/{id}/status
+PUT /api/envios/{id}/em-rota
 ```
 
-**Minhas Inscrições Ativas**
+**Confirmar Entrega**
 ```http
-GET /api/inscricoes/minhas-inscricoes
+PUT /api/envios/{id}/entregue
 ```
 
-**Histórico de Eventos**
+#### Dashboard
+
+**Obter Resumo**
 ```http
-GET /api/inscricoes/historico
+GET /api/dashboard/resumo
 ```
+
+**Resposta:**
+```json
+{
+  "emTransito": 15,
+  "entreguesHoje": 8,
+  "taxaConfirmacao": "98%",
+  "atividades": [
+    {
+      "descricao": "Lote 1234: Saiu para entrega",
+      "dataHora": "04/12 14:30"
+    }
+  ]
+}
+```
+
+#### Relatórios
+
+**Gerar Relatório PDF**
+```http
+POST /api/relatorios/gerar
+Content-Type: application/json
+
+{
+  "agricultorId": null,
+  "sementeId": null,
+  "municipio": "Recife",
+  "dataInicio": "2024-01-01",
+  "dataFim": "2024-12-31"
+}
+```
+
+Retorna um arquivo PDF para download.
 
 ## 🔐 Segurança
 
 ### CORS
-Configurado para aceitar requisições de qualquer origem (`*`) para facilitar integração com front-ends.
+Configurado para aceitar requisições de:
+- `http://127.0.0.1:5500`
+- `http://localhost:5500`
+- `http://localhost:8080`
 
 ### JWT
-- **Algoritmo:** HS256
-- **Validade:** 5 horas (18000000 ms)
-- **Chave secreta:** Configurável via variável de ambiente
+- **Algoritmo:** HMAC256
+- **Validade:** 2 horas
+- **Chave secreta:** Configurável via `application.properties`
 
 ### Endpoints Públicos
-- `/` - Health check
-- `/api/test` - Teste de API
-- `/health` - Status da aplicação
-- `/api/auth/**` - Autenticação
-- `/api/contato/**` - Formulário de contato
-- `GET /api/eventos/**` - Listagem de eventos
-- `GET /api/perfis/buscar` - Busca global
-- `GET /api/perfis/usuario/{id}` - Perfis públicos
-- `GET /fotos/**` - Arquivos de imagem
+- `POST /api/auth/login` - Login
+- `POST /api/auth/register` - Registro
+- `GET /api/agricultores/buscar` - Busca de agricultores
+- `OPTIONS /**` - Pre-flight requests (CORS)
 
 ### Endpoints Protegidos
-Todos os demais endpoints requerem token JWT válido no header `Authorization: Bearer {token}`.
-
-## 👥 Usuários de Teste
-
-A aplicação cria automaticamente dois usuários ao iniciar:
-
-| Usuário | Email | Senha | Nome Completo |
-|---------|-------|-------|---------------|
-| testuser | teste@email.com | 123456 | Usuário de Teste |
-| jorgeuser | jorge@email.com | 12345 | Jorge da Silva |
+Todos os demais endpoints requerem token JWT válido.
 
 ## 📁 Estrutura do Projeto
 
 ```
-eventos/
-├── src/main/java/com/eventos/eventos/
+conectahub-api/
+├── src/main/java/com/conectahub/conectahub_api/
 │   ├── config/
-│   │   ├── JwtRequestFilter.java      # Filtro de autenticação JWT
-│   │   ├── JwtTokenUtil.java          # Utilitário para tokens
-│   │   ├── MvcConfig.java             # Configuração de recursos estáticos
-│   │   └── SecurityConfig.java        # Configuração de segurança
+│   │   ├── SecurityConfig.java         # Configuração de segurança
+│   │   └── SecurityFilter.java         # Filtro JWT
 │   ├── controller/
-│   │   ├── AuthController.java        # Login e registro
-│   │   ├── ContatoController.java     # Formulário de contato
-│   │   ├── EventoController.java      # CRUD de eventos
-│   │   ├── InscricaoPerfilController.java  # Gerenciamento de inscrições
-│   │   ├── PerfilController.java      # Gerenciamento de perfis
-│   │   └── TestController.java        # Endpoints de teste
+│   │   ├── AgricultorController.java   # Endpoints de agricultores
+│   │   ├── AutenticacaoController.java # Login e registro
+│   │   ├── DashboardController.java    # Estatísticas
+│   │   ├── EnvioController.java        # Gestão de envios
+│   │   ├── FornecedorController.java   # CRUD de fornecedores
+│   │   ├── RelatorioController.java    # Geração de relatórios
+│   │   └── SementeController.java      # Controle de estoque
 │   ├── dto/
-│   │   ├── LoginRequest.java
-│   │   ├── LoginResponse.java
-│   │   ├── RegisterDto.java
-│   │   ├── PerfilUpdateDto.java
-│   │   ├── MensagemDTO.java
-│   │   └── ResultadoBuscaDTO.java
+│   │   ├── LoginRequestDTO.java
+│   │   ├── LoginResponseDTO.java
+│   │   ├── RegisterRequestDTO.java
+│   │   ├── CriarEnvioRequestDTO.java
+│   │   ├── DetalhesEnvioDTO.java
+│   │   ├── DashboardDTO.java
+│   │   └── RelatorioFiltroDTO.java
 │   ├── model/
-│   │   ├── Usuario.java               # Entidade de usuário
-│   │   ├── Perfil.java                # Entidade de perfil
-│   │   ├── Evento.java                # Entidade de evento
-│   │   ├── Inscricao.java             # Entidade de inscrição
-│   │   └── Contato.java               # Entidade de contato
+│   │   ├── Usuario.java                # Entidade de usuário
+│   │   ├── Agricultor.java             # Entidade de agricultor
+│   │   ├── Fornecedor.java             # Entidade de fornecedor
+│   │   ├── Semente.java                # Entidade de semente
+│   │   ├── Envio.java                  # Entidade de envio
+│   │   ├── HistoricoEnvio.java         # Histórico de mudanças
+│   │   └── StatusEnvio.java            # Enum de status
 │   ├── repository/
 │   │   ├── UsuarioRepository.java
-│   │   ├── PerfilRepository.java
-│   │   ├── EventoRepository.java
-│   │   ├── InscricaoRepository.java
-│   │   └── ContatoRepository.java
+│   │   ├── AgricultorRepository.java
+│   │   ├── FornecedorRepository.java
+│   │   ├── SementeRepository.java
+│   │   ├── EnvioRepository.java
+│   │   └── HistoricoEnvioRepository.java
 │   ├── service/
-│   │   ├── UserDetailsServiceImpl.java  # Serviço de autenticação
-│   │   ├── FileStorageService.java      # Upload de arquivos
-│   │   └── ContatoService.java          # Serviço de contato
-│   └── EventosApplication.java        # Classe principal
+│   │   ├── AutenticacaoService.java    # Lógica de autenticação
+│   │   ├── TokenService.java           # Geração e validação JWT
+│   │   ├── AgricultorService.java
+│   │   ├── FornecedorService.java
+│   │   ├── SementeService.java
+│   │   ├── EnvioService.java           # Lógica de envios
+│   │   ├── DashboardService.java
+│   │   └── RelatorioService.java       # Geração de PDFs
+│   └── ConectahubApiApplication.java   # Classe principal
 ├── src/main/resources/
-│   └── application.properties         # Configurações da aplicação
-└── pom.xml                            # Dependências Maven
+│   └── application.properties          # Configurações
+└── pom.xml                             # Dependências Maven
 ```
+
+## 🗄️ Modelo de Dados
+
+### Principais Entidades
+
+**Usuario**
+- id (PK)
+- nome
+- email (unique)
+- senhaHash
+- role (ADMIN/USER)
+
+**Agricultor**
+- id (PK)
+- nome
+- cpfCnpj (unique)
+- municipio
+- uf
+
+**Fornecedor**
+- id (PK)
+- razaoSocial
+- cnpj (unique)
+- dataCriacao
+
+**Semente**
+- id (PK)
+- tipoSemente (unique)
+- quantidadeKg
+- nivelMinimoKg
+- dataUltimaEntrada
+
+**Envio**
+- id (PK)
+- codigoLote (unique)
+- quantidadeEnviadaKg
+- status (ENUM)
+- dataCriacao
+- agricultorId (FK)
+- sementeId (FK)
+
+**HistoricoEnvio**
+- id (PK)
+- status (ENUM)
+- descricao
+- dataHora
+- envioId (FK)
+
+## 🎯 Fluxo de Uso
+
+### 1. Autenticação
+```
+1. Usuário faz login → Recebe token JWT
+2. Token é enviado no header de todas as requisições protegidas
+```
+
+### 2. Criar Novo Envio
+```
+1. Selecionar agricultor (busca por nome)
+2. Selecionar semente (listar estoque)
+3. Definir quantidade em kg
+4. Sistema gera código de lote
+5. Baixa automática no estoque
+6. Cria registro no histórico
+```
+
+### 3. Rastrear Envio
+```
+1. Buscar por código de lote
+2. Visualizar detalhes do envio
+3. Acompanhar histórico de status
+4. Atualizar status conforme necessário
+```
+
+### 4. Gerar Relatório
+```
+1. Definir filtros (período, município, agricultor, semente)
+2. Sistema busca dados filtrados
+3. Gera PDF formatado com tabela completa
+4. Download automático do arquivo
+```
+
+## 💾 Dados de Exemplo
+
+Após executar os scripts SQL, o sistema terá:
+- 20 Categorias de sementes
+- 20 Fornecedores
+- 20 Agricultores
+- 20 Usuários
+- 20 Tipos de sementes
+- 20 Lotes de estoque
+
+## 🛡️ Regras de Negócio
+
+1. **Estoque**: Não permite criação de envio sem saldo suficiente
+2. **Bloqueio**: Usa lock pessimista para evitar race conditions no estoque
+3. **Histórico**: Registra automaticamente cada mudança de status
+4. **Status do Envio**: Segue fluxo: CRIADO → EM_TRANSITO → ENTREGUE → CONFIRMADO
+5. **Validação**: Campos obrigatórios validados antes de salvar
 
 ## 🚀 Deploy
 
-### Render (Recomendado)
+### Variáveis de Ambiente
 
-1. Crie um novo Web Service no Render
-2. Conecte seu repositório GitHub
-3. Configure as variáveis de ambiente:
-   - `DB_URL`
-   - `DB_USER`
-   - `DB_PASSWORD`
-   - `JWT_SECRET` (opcional)
-4. Build Command: `./mvnw clean install -DskipTests`
-5. Start Command: `java -jar target/eventos-0.0.1-SNAPSHOT.jar`
-
-### Heroku
-
-1. Instale o Heroku CLI
-2. Execute os comandos:
+Para produção, configure:
 ```bash
-heroku create seu-app-eventos
-heroku addons:create heroku-postgresql:hobby-dev
-heroku config:set JWT_SECRET=sua_chave_secreta
-git push heroku main
+DB_URL=jdbc:mysql://seu-host:3306/conectahub
+DB_USER=seu_usuario
+DB_PASSWORD=sua_senha
+JWT_SECRET=sua_chave_secreta_longa
+```
+
+### Build para Produção
+
+```bash
+./mvnw clean package -DskipTests
+java -jar target/conectahub-api-0.0.1-SNAPSHOT.jar
 ```
 
 ## 📝 Notas Importantes
 
-- **Uploads de Arquivo:** Os arquivos são salvos localmente em `uploads/fotos/`. Para produção, considere usar um serviço de armazenamento em nuvem (AWS S3, Cloudinary, etc.)
-- **CORS:** Configurado para aceitar qualquer origem (`*`). Para produção, especifique as origens permitidas.
-- **JWT Secret:** Altere a chave secreta JWT antes de fazer deploy em produção.
-- **Banco de Dados:** Use PostgreSQL em produção para melhor compatibilidade e performance.
+- **JWT Secret**: Altere a chave secreta antes do deploy em produção
+- **CORS**: Configure origens específicas para produção
+- **Banco de Dados**: Use MySQL com encoding UTF-8
+- **Timezone**: Configurado para UTC nas conexões
 
 ## 🤝 Contribuindo
 
 1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
+2. Crie uma branch para sua feature (`git checkout -b feature/NovaFuncionalidade`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
 5. Abra um Pull Request
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+Este projeto foi desenvolvido para fins educacionais como parte do Projeto Integrador.
 
-## 👨‍💻 Autor
+## 👥 Autores
 
-Desenvolvido como projeto de sistema completo de gerenciamento de eventos e perfis profissionais.
-
-## 📞 Suporte
-
-Para dúvidas ou problemas, abra uma issue no GitHub ou entre em contato através do formulário de contato da aplicação.
+Desenvolvido como projeto acadêmico para gerenciamento de distribuição de sementes agrícolas.
 
 ---
 
-**⚠️ Importante:** Lembre-se de alterar as credenciais do banco de dados e a chave secreta JWT antes de fazer deploy em produção!
+**🌱 ConectaHub API - Conectando o campo à tecnologia**
